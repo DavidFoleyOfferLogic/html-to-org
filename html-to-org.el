@@ -55,10 +55,8 @@ Run SUCCESS-CALLBACK on parsed content."
              :success (cl-function
                        (lambda (&key data &allow-other-keys)
                          (setq html-to-org/json-response (assoc-default 'content data))
-                         (message "response: %s" html-to-org/json-response)
                          (funcall fn html-to-org/json-response)))
-             :error (cl-function (lambda (&key error-thrown &allow-other-keys&rest _)
-                                   (message "Got error: %S" error-thrown))))))
+             :error (cl-function (lambda (&key error-thrown &allow-other-keys&rest _))))))
 
 (defun html-to-org/write-string-to-file (string filename)
   "Write STRING to file FILENAME."
@@ -103,7 +101,6 @@ Run SUCCESS-CALLBACK on parsed content."
   (let ((convert-process)
         (pout "tempbuffer")
         (process-output-buffer))
-    (message "running pandoc to convert html to org")
     (setq convert-process (start-process "convert-html-to-org" pout html-to-org/pandoc-process "--from=html" "--to=org" inputfile))
     (setq process-output-buffer (process-buffer convert-process))
     (ailbe/buffer-string* process-output-buffer)))
