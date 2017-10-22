@@ -68,7 +68,7 @@ Run SUCCESS-CALLBACK on parsed content."
   (interactive "sEnter url: \nsEnter destination file path: ")
   (if (string= "" destfile) (progn
                               ;; build the default output file path and save org contents to that file
-                              ;; TODO: move this into a function
+                              ;; TODO: move this into a function or use threading macro
                               (setq url-segments (url-generic-parse-url url))
                               (setq org-filename (format "%s" (file-name-nondirectory (url-filename url-segments))))
                               (setq destfile (concat (file-name-as-directory html-to-org/default-directory) org-filename))
@@ -85,16 +85,15 @@ Run SUCCESS-CALLBACK on parsed content."
 (defun html-to-org/html-to-org-heading (url)
   "Extract the text content from the webpage URL and create a new org heading in the current buffer."
   (interactive "sEnter url: \n")
-  (setq orgstring (with-temp-buffer
-                    (org-mode)
-                    (insert (cdr title-orgstring))
-                    (goto-char (point-min))
-                    (insert "* " title
-                            "\n** Article" "\n\n")
-                    (buffer-string)))
-  (setq html2orgbuffer (find-file-noselect html-to-org/org-file))
-  (with-current-buffer html2orgbuffer
-    (org-paste-subtree nil orgstring)
+  (with-current-buffer (find-file-noselect html-to-org/org-file)
+    (org-paste-subtree nil (with-temp-buffer
+                             (org-mode)
+                             ;; (insert (cdr title-orgstring))
+                             (insert "test title")
+                             (goto-char (point-min))
+                             (insert "* " "test title"
+                                     "\n** Article" "\n\n")
+                             (buffer-string)))
     (save-buffer)))
 
 (defun html-to-org/convert-html-to-org (inputfile)
