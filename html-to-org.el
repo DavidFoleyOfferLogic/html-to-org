@@ -67,6 +67,7 @@ Run SUCCESS-CALLBACK on parsed content."
   (interactive "sEnter url: \nsEnter destination file path: ")
   (if (string= "" destfile) (progn
                               ;; build the default output file path and save org contents to that file
+                              ;; TODO: move this into a function
                               (setq url-segments (url-generic-parse-url url))
                               (setq org-filename (format "%s" (file-name-nondirectory (url-filename url-segments))))
                               (setq destfile (concat (file-name-as-directory html-to-org/default-directory) org-filename))
@@ -76,39 +77,35 @@ Run SUCCESS-CALLBACK on parsed content."
   (html-to-org/readability-request url (apply-partially (lambda (destfile data)
                                                           (html-to-org/write-string-to-file data destfile)
                                                           (setq orgstring (html-to-org/convert-html-to-org destfile))
-                                                          (html-to-org/write-string-to-file orgstring destfile)) destfile)))
+                                                          (html-to-org/write-string-to-file orgstring destfile)) destfile))
 
-;; TODO.. wip
-(defun html-to-org/html-to-org-heading (url)
-  "Extract the text content from the webpage URL and create a new org heading in the current buffer."
-  (interactive "sEnter url: \n")
-  (setq title-orgstring (ailbe/html-to-org url))
-  (setq title (car title-orgstring))
-  (setq orgstring (with-temp-buffer
-                    (org-mode)
-                    (insert (cdr title-orgstring))
-                    (goto-char (point-min))
-                    (insert "* " title
-                            "\n** Article" "\n\n")
-                    (buffer-string)))
-  (setq html2orgbuffer (find-file-noselect html-to-org/org-file))
-  (with-current-buffer html2orgbuffer
-    (org-paste-subtree nil orgstring)
-    (save-buffer)))
+  ;; TODO.. wip
+  (defun html-to-org/html-to-org-heading (url)
+    "Extract the text content from the webpage URL and create a new org heading in the current buffer."
+    (interactive "sEnter url: \n")
+    (setq title-orgstring (ailbe/html-to-org url))
+    (setq title (car title-orgstring))
+    (setq orgstring (with-temp-buffer
+                      (org-mode)
+                      (insert (cdr title-orgstring))
+                      (goto-char (point-min))
+                      (insert "* " title
+                              "\n** Article" "\n\n")
+                      (buffer-string)))
+    (setq html2orgbuffer (find-file-noselect html-to-org/org-file))
+    (with-current-buffer html2orgbuffer
+      (org-paste-subtree nil orgstring)
+      (save-buffer))))
 
 (defun html-to-org/convert-html-to-org (inputfile)
   "Convert html file, INPUTFILE,  to org string."
   (let ((convert-process)
+        ;; there's a better way
         (pout "tempbuffer")
         (process-output-buffer))
     (setq convert-process (start-process "convert-html-to-org" pout html-to-org/pandoc-process "--from=html" "--to=org" inputfile))
     (setq process-output-buffer (process-buffer convert-process))
     (ailbe/buffer-string* process-output-buffer)))
-
-(defun html-to-org/write-readability-response (response)
-  "Write the article content RESPONSE from readability."
-  (html-to-org/write-string-to-file response "html-to-org")
-  (html-to-org/convert-html-to-org tempfile))
 
 (provide 'html-to-org)
 ;;; html-to-org.el ends here
