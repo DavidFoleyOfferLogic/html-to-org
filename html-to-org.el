@@ -62,6 +62,7 @@ Run SUCCESS-CALLBACK on parsed content."
   "Write STRING to file FILENAME."
   (with-temp-buffer (insert string) (write-file filename)))
 
+;;;###autoload
 (defun html-to-org/html-to-file (url destfile)
   "Extract the text content from webpage, URL, and save it into new file, DESTFILE."
   (interactive "sEnter url: \nsEnter destination file path: ")
@@ -77,25 +78,26 @@ Run SUCCESS-CALLBACK on parsed content."
   (html-to-org/readability-request url (apply-partially (lambda (destfile data)
                                                           (html-to-org/write-string-to-file data destfile)
                                                           (setq orgstring (html-to-org/convert-html-to-org destfile))
-                                                          (html-to-org/write-string-to-file orgstring destfile)) destfile))
+                                                          (html-to-org/write-string-to-file orgstring destfile)) destfile)))
 
-  ;; TODO.. wip
-  (defun html-to-org/html-to-org-heading (url)
-    "Extract the text content from the webpage URL and create a new org heading in the current buffer."
-    (interactive "sEnter url: \n")
-    (setq title-orgstring (ailbe/html-to-org url))
-    (setq title (car title-orgstring))
-    (setq orgstring (with-temp-buffer
-                      (org-mode)
-                      (insert (cdr title-orgstring))
-                      (goto-char (point-min))
-                      (insert "* " title
-                              "\n** Article" "\n\n")
-                      (buffer-string)))
-    (setq html2orgbuffer (find-file-noselect html-to-org/org-file))
-    (with-current-buffer html2orgbuffer
-      (org-paste-subtree nil orgstring)
-      (save-buffer))))
+;; TODO.. wip
+;;;###autoload
+(defun html-to-org/html-to-org-heading (url)
+  "Extract the text content from the webpage URL and create a new org heading in the current buffer."
+  (interactive "sEnter url: \n")
+  (setq title-orgstring (ailbe/html-to-org url))
+  (setq title (car title-orgstring))
+  (setq orgstring (with-temp-buffer
+                    (org-mode)
+                    (insert (cdr title-orgstring))
+                    (goto-char (point-min))
+                    (insert "* " title
+                            "\n** Article" "\n\n")
+                    (buffer-string)))
+  (setq html2orgbuffer (find-file-noselect html-to-org/org-file))
+  (with-current-buffer html2orgbuffer
+    (org-paste-subtree nil orgstring)
+    (save-buffer)))
 
 (defun html-to-org/convert-html-to-org (inputfile)
   "Convert html file, INPUTFILE,  to org string."
