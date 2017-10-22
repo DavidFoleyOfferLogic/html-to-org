@@ -85,8 +85,6 @@ Run SUCCESS-CALLBACK on parsed content."
 (defun html-to-org/html-to-org-heading (url)
   "Extract the text content from the webpage URL and create a new org heading in the current buffer."
   (interactive "sEnter url: \n")
-  (setq title-orgstring (ailbe/html-to-org url))
-  (setq title (car title-orgstring))
   (setq orgstring (with-temp-buffer
                     (org-mode)
                     (insert (cdr title-orgstring))
@@ -101,13 +99,9 @@ Run SUCCESS-CALLBACK on parsed content."
 
 (defun html-to-org/convert-html-to-org (inputfile)
   "Convert html file, INPUTFILE,  to org string."
-  (let ((convert-process)
-        ;; there's a better way
-        (pout "tempbuffer")
-        (process-output-buffer))
-    (setq convert-process (start-process "convert-html-to-org" pout html-to-org/pandoc-process "--from=html" "--to=org" inputfile))
-    (setq process-output-buffer (process-buffer convert-process))
-    (ailbe/buffer-string* process-output-buffer)))
+  (-> (start-process "convert-html-to-org" "pandoc-buffer" html-to-org/pandoc-process "--from=html" "--to=org" inputfile)
+      (process-buffer)
+      (ailbe/buffer-string*)))
 
 (provide 'html-to-org)
 ;;; html-to-org.el ends here
