@@ -66,15 +66,19 @@ Run SUCCESS-CALLBACK on parsed content."
 (defun html-to-org/html-to-file (url destfile)
   "Extract the text content from webpage, URL, and save it into new file, DESTFILE."
   (interactive "sEnter url: \nsEnter destination file path: ")
-  (if (string= "" destfile) (progn
-                              ;; build the default output file path and save org contents to that file
-                              ;; TODO: move this into a function or use threading macro
-                              (setq url-segments (url-generic-parse-url url))
-                              (setq org-filename (format "%s" (file-name-nondirectory (url-filename url-segments))))
-                              (setq destfile (concat (file-name-as-directory html-to-org/default-directory) org-filename))
-                              (setq destfile (concat (file-name-sans-extension destfile) ".org")))
-    (progn
-      (setq destfile (expand-file-name destfile))))
+  (setq fdir (file-name-as-directory html-to-org/default-directory))
+  (if (string= "" destfile) (setq destfile (->
+                                            url
+                                            (url-generic-parse-url)
+                                            (url-filename)
+                                            (file-name-nondirectory)
+                                            (file-name-sans-extension)
+                                            (expand-file-name fdir)
+                                            (format "%s .org")))
+    (setq destfile (expand-file-name destfile))
+    ;; This is a hack that I need to fix because of the format/concat issue in the
+    ;; threading macro (issue noted elsewhere).
+    (setq destfile (concat (file-name-sans-extension destfile) ".org")))
   (html-to-org/readability-request url (apply-partially (lambda (destfile data)
                                                           (html-to-org/write-string-to-file data destfile)
                                                           (setq orgstring (html-to-org/convert-html-to-org destfile))
@@ -103,4 +107,4 @@ Run SUCCESS-CALLBACK on parsed content."
       (ailbe/buffer-string*)))
 
 (provide 'html-to-org)
-;;; html-to-org.el ends here
+;;; html-to-org.el ends here 
